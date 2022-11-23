@@ -20,10 +20,21 @@ const handleListen = () => console.log('Listening on http://localhost:3000');
 const server = http.createServer(app);
 const wss = new WebSocketServer({ server })
 
-function handleConnection(stream) {
-    console.log('connected', stream)
-}
 
-wss.on("connection", handleConnection)
+
+wss.on("connection", (stream) => {
+    console.log("Connected to the Browser!")
+    stream.on("message", (message) => {
+        console.log(message.toString('utf8'))
+    })
+    stream.on("close", () => {
+        console.log("Disconnected from the Browser!")
+    })
+    stream.send('Hello!')
+})
+
+
+
+
 
 server.listen(3000, handleListen)

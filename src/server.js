@@ -29,10 +29,18 @@ const sockets = [];
 
 wss.on("connection", (socket) => {
     sockets.push(socket);
+    socket['nickname'] = 'Anon';
     console.log("Connected to the Browser!")
     socket.on("close",onSocketClose)
-    socket.on("message", (message) => {
-        sockets.forEach(each => each.send(message.toString('utf-8')));
+    socket.on("message", (raw) => {
+        const msg = raw.toString('utf-8')
+        const message = JSON.parse(msg)
+        switch (message.type) {
+            case "new_message":
+                sockets.forEach(each => each.send(`${socket.nickname}: ${message.payload}`)); break;
+            case "nickname":
+                socket['nickname'] = message.payload;
+        }
     })
 })
 

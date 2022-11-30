@@ -1,7 +1,7 @@
 import express from "express";
-import { WebSocketServer }  from "ws";
 import path from 'path';
 import http from "http";
+import { Server as SocketIO } from "socket.io";
 const __dirname = path.resolve();
 
 const app = express();
@@ -18,31 +18,29 @@ app.get("/*", (req, res) => res.redirect("/"));
 const handleListen = () => console.log('Listening on http://localhost:3000');
 
 const server = http.createServer(app);
-const wss = new WebSocketServer({ server })
+const wsServer = new SocketIO(server)
 
-
-function onSocketClose() {
-    console.log("Disconnected from the Browser!")
-}
-
-const sockets = [];
-
-wss.on("connection", (socket) => {
-    sockets.push(socket);
-    socket['nickname'] = 'Anon';
-    console.log("Connected to the Browser!")
-    socket.on("close",onSocketClose)
-    socket.on("message", (raw) => {
-        const msg = raw.toString('utf-8')
-        const message = JSON.parse(msg)
-        switch (message.type) {
-            case "new_message":
-                sockets.forEach(each => each.send(`${socket.nickname}: ${message.payload}`)); break;
-            case "nickname":
-                socket['nickname'] = message.payload;
-        }
-    })
+wsServer.on('connection', socket => {
+    console.log(socket);
 })
+const sockets = [];
+//
+// wss.on("connection", (socket) => {
+//     sockets.push(socket);
+//     socket['nickname'] = 'Anon';
+//     console.log("Connected to the Browser!")
+//     socket.on("close",onSocketClose)
+//     socket.on("message", (raw) => {
+//         const msg = raw.toString('utf-8')
+//         const message = JSON.parse(msg)
+//         switch (message.type) {
+//             case "new_message":
+//                 sockets.forEach(each => each.send(`${socket.nickname}: ${message.payload}`)); break;
+//             case "nickname":
+//                 socket['nickname'] = message.payload;
+//         }
+//     })
+// })
 
 
 

@@ -21,11 +21,13 @@ const server = http.createServer(app);
 const wsServer = new SocketIO(server)
 
 wsServer.on('connection', socket => {
+    socket.onAny(event => {
+        console.log(`Socket Event: ${event}`)
+    })
     socket.on('enter_room', (roomName, done) => {
-        console.log(roomName)
-        setTimeout(() => {
-            done('hello from the backend')
-        }, 15000)
+        socket.join(roomName);
+        done(roomName);
+
     })
 })
 const sockets = [];

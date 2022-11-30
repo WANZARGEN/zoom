@@ -21,16 +21,19 @@ const server = http.createServer(app);
 const wss = new WebSocketServer({ server })
 
 
+function onSocketClose() {
+    console.log("Disconnected from the Browser!")
+}
 
-wss.on("connection", (stream) => {
+const sockets = [];
+
+wss.on("connection", (socket) => {
+    sockets.push(socket);
     console.log("Connected to the Browser!")
-    stream.on("message", (message) => {
-        console.log(message.toString('utf8'))
+    socket.on("close",onSocketClose)
+    socket.on("message", (message) => {
+        sockets.forEach(each => each.send(message.toString('utf-8')));
     })
-    stream.on("close", () => {
-        console.log("Disconnected from the Browser!")
-    })
-    stream.send('Hello!')
 })
 
 
@@ -38,3 +41,4 @@ wss.on("connection", (stream) => {
 
 
 server.listen(3000, handleListen)
+

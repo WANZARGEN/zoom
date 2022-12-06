@@ -20,8 +20,18 @@ const handleListen = () => console.log('Listening on http://localhost:3000');
 const server = http.createServer(app);
 const wsServer = new SocketIO(server)
 
-
+const publicRooms = () => {
+    const { sids, rooms} = wsServer.sockets.adapter;
+    const publicRooms = []
+    rooms.forEach((_, key) => {
+        if (sids.get(key) === undefined) {
+            publicRooms.push(key)
+        }
+    })
+    return publicRooms
+}
 wsServer.on('connection', socket => {
+    wsServer.socketsJoin('announcement');
     socket.onAny(event => {
         console.log(`Socket Event: ${event}`)
     })

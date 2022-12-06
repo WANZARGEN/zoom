@@ -31,19 +31,19 @@ const publicRooms = () => {
     return publicRooms
 }
 wsServer.on('connection', socket => {
-    wsServer.socketsJoin('announcement');
-    socket.onAny(event => {
-        console.log(`Socket Event: ${event}`)
-    })
     socket.on('enter_room', (roomName, done) => {
         socket.join(roomName);
         done();
         socket.to(roomName).emit('welcome', socket.nickname);
+        wsServer.sockets.emit('room_change', publicRooms())
     })
     socket.on('disconnecting', () => {
         socket.rooms.forEach(room => {
             return socket.to(room).emit('bye', socket.nickname)
         })
+    })
+    socket.on('disconnect', () => {
+        wsServer.sockets.emit('room_change', publicRooms())
     })
     socket.on('new_message', (msg, room, done) => {
         socket.to(room).emit('new_message', `${socket.nickname}: ${msg}`);

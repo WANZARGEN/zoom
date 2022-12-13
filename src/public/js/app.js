@@ -9,7 +9,7 @@ const call = document.getElementById('call')
 call.hidden = true;
 
 let myStream;
-let muted;
+let muted = true;
 let cameraOff;
 let roomName;
 let myPeerConnection;
@@ -97,6 +97,15 @@ const handleCameraClick = () => {
 
 const handleCameraChange = async () => {
     await getMedia(camerasSelect.value)
+   try {
+       if (myPeerConnection) {
+           const videoTrack = myStream.getVideoTracks()[0]
+           const videoSender = myPeerConnection.getSenders().find(sender => sender.track.kind === 'video')
+           await videoSender.replaceTrack(videoTrack)
+       }
+   } catch (e) {
+       console.error(e)
+   }
 }
 
 muteBtn.addEventListener('click', handleMuteClick)

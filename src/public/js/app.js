@@ -13,6 +13,7 @@ let muted = true;
 let cameraOff;
 let roomName;
 let myPeerConnection;
+let myDataChannel;
 
 const getCameras = async () => {
     try {
@@ -135,6 +136,11 @@ welcomeForm.addEventListener('submit', handleWelcomeSubmit)
 // Socket Code
 
 socket.on('welcome', async () => {
+    myDataChannel = myPeerConnection.createDataChannel('chat');
+    myDataChannel.addEventListener('message', (event) => {
+        console.log(event.data)
+    })
+    console.log('made data channel')
     const offer = await myPeerConnection.createOffer();
     await myPeerConnection.setLocalDescription(offer)
     socket.emit('offer', offer, roomName)
@@ -142,6 +148,12 @@ socket.on('welcome', async () => {
 })
 
 socket.on('offer', async (offer) => {
+    myPeerConnection.addEventListener('datachannel', (event) => {
+        myDataChannel = event.channel;
+        myDataChannel.addEventListener('message', (event) => {
+            console.log(event.data)
+        })
+    });
     console.log("received the offer");
     myPeerConnection.setRemoteDescription(offer)
     const answer = await myPeerConnection.createAnswer()
@@ -165,9 +177,9 @@ const handleIce = (data) => {
     socket.emit('ice', data.candidate, roomName)
     console.log('sent candidate')
 }
-const handleAddStream = (data) => {
-    const peersFace = document.getElementById('peersFace')
-    peersFace.srcObject = data.stream;
+function handleTrack(data) {
+    const peersFace = document.querySelector("#peersFace")
+    peersFace.srcObject = data.streams[0]
 }
 const makeConnection = () => {
     myPeerConnection = new RTCPeerConnection({
@@ -184,7 +196,7 @@ const makeConnection = () => {
         ],
     });
     myPeerConnection.addEventListener('icecandidate', handleIce)
-    myPeerConnection.addEventListener('addstream', handleAddStream)
+    myPeerConnection.addEventListener('track', handleTrack)
     myStream.getTracks().forEach(track => {
         myPeerConnection.addTrack(track, myStream)
     })
